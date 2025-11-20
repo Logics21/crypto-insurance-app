@@ -466,7 +466,7 @@ st.markdown("""
     <div class="top-header">
         <div class="logo-section">
             <span style="font-size: 32px;">Σ</span>
-            <span>Market</span>
+            <span>Insurance Market</span>
             <span class="tvl-display">
                 TVL: <span class="tvl-value">$21,253.53</span>
             </span>
@@ -480,7 +480,7 @@ st.markdown("""
 # Controls Bar
 col1, col2 = st.columns([3, 1])
 with col1:
-    tab1, tab2 = st.tabs(["Insurance requests", "Active bonds"])
+    tab1, tab2 = st.tabs(["Insurance requests", "Active Insurances"])
 with col2:
     if st.button("+ NEW INSURANCE REQUEST", key="new_req_btn"):
         st.session_state.show_create_modal = True
@@ -488,7 +488,10 @@ with col2:
 
 # Insurance Request Cards Grid
 if tab1:
-    cols = st.columns(4)
+    # Add some spacing
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    cols = st.columns(4, gap="medium")
     
     for idx, request in enumerate(st.session_state.insurance_requests):
         with cols[idx % 4]:
@@ -504,62 +507,60 @@ if tab1:
                 risk_color = "success"
                 risk_text = f"△ -{100-pool_fill_pct}%"
             
-            # Card HTML
-            st.markdown(f"""
-                <div class="insurance-card">
-                    <div class="type-badge type-{request['type']}">{request['type']}</div>
-                    <div class="card-header">
-                        <div>
-                            <div class="card-title">Insurance request</div>
+            # Create card using container
+            with st.container():
+                # Card wrapper
+                st.markdown(f"""
+                    <div class="insurance-card">
+                        <div class="type-badge type-{request['type']}">{request['type'].upper()}</div>
+                        <div class="card-header">
                             <div>
-                                <span class="card-amount">{request['amount']:,}</span>
-                                <span class="card-token">{request['token']}</span>
+                                <div class="card-title">Insurance request</div>
+                                <div>
+                                    <span class="card-amount">{request['amount']:,}</span>
+                                    <span class="card-token">{request['token']}</span>
+                                </div>
+                            </div>
+                            <div class="token-icon icon-{request['icon']}">
+                                "Σ"
                             </div>
                         </div>
-                        <div class="token-icon icon-{request['icon']}">
-                            {'Σ' if request['token'] == 'SigUSD' else 'Σ'}
-                        </div>
-                    </div>
-                    
-                    <div class="collateral-section">
-                        <div class="collateral-label">Pool Status</div>
-                        <div class="collateral-badge badge-{risk_color}">{risk_text}</div>
-                        <div class="pool-info">
-                            <div>
-                                <span class="pool-amount">{request['pool_size']:,}</span>
-                                <span class="pool-usd">≈0 USD</span>
+                        <div class="collateral-section">
+                            <div class="collateral-label">Pool Status</div>
+                            <div class="collateral-badge badge-{risk_color}">{risk_text}</div>
+                            <div class="pool-info">
+                                <div>
+                                    <span class="pool-amount">{request['pool_size']:,}</span>
+                                    <span class="pool-usd">≈0 USD</span>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    
-                    <div class="info-row">
-                        <div class="info-col">
-                            <div class="info-label">Term</div>
-                            <div class="info-value">{request['term_months']} months</div>
+                        <div class="info-row">
+                            <div class="info-col">
+                                <div class="info-label">Term</div>
+                                <div class="info-value">{request['term_months']} months</div>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="info-row">
-                        <div class="info-col">
-                            <div class="info-label">Payout Ratio</div>
-                            <div class="info-value">{request['ratio']:.1f}:1</div>
-                            <div class="info-subtext">{request['apr']:.2f}% APR</div>
+                        <div class="info-row">
+                            <div class="info-col">
+                                <div class="info-label">Payout Ratio</div>
+                                <div class="info-value">{request['ratio']:.1f}:1</div>
+                                <div class="info-subtext">{request['apr']:.2f}% APR</div>
+                            </div>
+                            <div class="info-col" style="text-align: right;">
+                                <div class="info-label">Requester</div>
+                                <div class="info-value" style="font-size: 14px;">{request['borrower']}</div>
+                            </div>
                         </div>
-                        <div class="info-col" style="text-align: right;">
-                            <div class="info-label">Requester</div>
-                            <div class="info-value" style="font-size: 14px;">{request['borrower']}</div>
-                        </div>
+                        <div class="service-fee">Service Fee: {request['service_fee']} {request['token']}</div>
                     </div>
-                    
-                    <div class="service-fee">Service Fee: {request['service_fee']} {request['token']}</div>
-                </div>
-                """, unsafe_allow_html=True)
-            
-            # Invisible button overlay for clicking
-            if st.button(f"View Details", key=f"view_{request['id']}", use_container_width=True):
-                st.session_state.selected_request = request
-                st.session_state.show_provide_modal = True
-                st.rerun()
+                    """, unsafe_allow_html=True)
+                
+                # Button below card
+                if st.button(f"📋 View Details", key=f"view_{request['id']}", use_container_width=True):
+                    st.session_state.selected_request = request
+                    st.session_state.show_provide_modal = True
+                    st.rerun()
 
 # Provide Coverage Modal
 if st.session_state.show_provide_modal and st.session_state.selected_request:
@@ -673,7 +674,7 @@ if st.session_state.show_create_modal:
             if insurance_type == "variable":
                 insurance_ratio = st.slider(
                     "Payout Ratio",
-                    min_value=1.0,
+                    min_value=0.0,
                     max_value=5.0,
                     value=2.0,
                     step=0.1,
@@ -756,6 +757,6 @@ if st.session_state.show_create_modal:
 st.markdown("<br>", unsafe_allow_html=True)
 st.markdown("""
     <div style="text-align: center; color: #999; font-size: 12px; padding: 20px;">
-        SigmaShield Protocol • Decentralized Insurance • Audited by CertiK
+        SigmaShield Protocol • Decentralized Insurance
     </div>
     """, unsafe_allow_html=True)
