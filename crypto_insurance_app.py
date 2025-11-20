@@ -3,23 +3,23 @@ from datetime import datetime, timedelta
 
 # Page configuration
 st.set_page_config(
-    page_title="CryptoShield - Decentralized Insurance",
-    page_icon="🛡️",
+    page_title="Ergo Insurance - Oracle-Based Protection",
+    page_icon="🔷",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS for styling
+# Custom CSS for styling - Ergo theme
 st.markdown("""
     <style>
     .main {
-        background: linear-gradient(135deg, #1e1b4b 0%, #581c87 50%, #1e1b4b 100%);
+        background: linear-gradient(135deg, #1a1a1a 0%, #2d1810 50%, #1a1a1a 100%);
     }
     .stMetric {
         background-color: rgba(30, 41, 59, 0.5);
         padding: 15px;
         border-radius: 10px;
-        border: 1px solid rgba(139, 92, 246, 0.3);
+        border: 1px solid rgba(255, 94, 0, 0.3);
     }
     .success-box {
         background: linear-gradient(135deg, rgba(34, 197, 94, 0.2) 0%, rgba(16, 185, 129, 0.2) 100%);
@@ -29,10 +29,10 @@ st.markdown("""
         margin: 10px 0;
     }
     .info-box {
-        background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(14, 165, 233, 0.2) 100%);
+        background: linear-gradient(135deg, rgba(255, 94, 0, 0.2) 0%, rgba(255, 128, 0, 0.2) 100%);
         padding: 20px;
         border-radius: 10px;
-        border: 1px solid rgba(59, 130, 246, 0.3);
+        border: 1px solid rgba(255, 94, 0, 0.3);
         margin: 10px 0;
     }
     .warning-box {
@@ -42,11 +42,18 @@ st.markdown("""
         border-left: 4px solid #fbbf24;
         margin: 10px 0;
     }
+    .oracle-box {
+        background: linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(168, 85, 247, 0.2) 100%);
+        padding: 15px;
+        border-radius: 10px;
+        border: 1px solid rgba(139, 92, 246, 0.3);
+        margin: 10px 0;
+    }
     h1 {
-        color: #c084fc;
+        color: #ff5e00;
     }
     h2, h3 {
-        color: #e9d5ff;
+        color: #ffb380;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -54,10 +61,10 @@ st.markdown("""
 # Title and header
 col1, col2 = st.columns([1, 5])
 with col1:
-    st.markdown("# 🛡️")
+    st.markdown("# 🔷")
 with col2:
-    st.title("CryptoShield")
-    st.markdown("**Decentralized Insurance Marketplace**")
+    st.title("Ergo Insurance")
+    st.markdown("**Oracle-Based Decentralized Protection**")
 
 st.markdown("---")
 
@@ -72,11 +79,12 @@ view = st.sidebar.radio(
 st.sidebar.markdown("---")
 st.sidebar.markdown("### About")
 st.sidebar.info("""
-**CryptoShield** allows you to:
-- Create insurance requests with custom terms
-- Provide liquidity as an insurer
-- Earn yields on capital
-- Protect against risks
+**Ergo Insurance** enables:
+- Oracle-based smart insurance contracts
+- Weather, price, and custom triggers
+- Flexible payout ratios (0.25x to 5x)
+- Decentralized protection on Ergo blockchain
+- Fair risk/reward distribution
 """)
 
 
@@ -140,30 +148,82 @@ if "🔒 Buy Insurance" in view:
             help="Variable: payout depends on ratio | Fixed: predetermined payout"
         )
         
-        # Payout Ratio (only for variable)
+        # Oracle Trigger Event
+        st.markdown("---")
+        st.subheader("🔮 Oracle Trigger Event")
+        
+        trigger_event = st.selectbox(
+            "Select Trigger Source",
+            [
+                "Weather - Temperature",
+                "Weather - Rainfall",
+                "Weather - Wind Speed",
+                "Price Movement - ERG/USD",
+                "Price Movement - BTC/USD",
+                "Price Movement - ETH/USD",
+                "Agricultural - Crop Yield",
+                "Flight Delay",
+                "Custom Oracle Data"
+            ],
+            help="What event will trigger the insurance payout?"
+        )
+        
+        # Trigger condition
+        col_t1, col_t2 = st.columns(2)
+        with col_t1:
+            trigger_condition = st.selectbox(
+                "Condition",
+                ["Above", "Below", "Equals", "Between"],
+                help="When should payout be triggered?"
+            )
+        
+        with col_t2:
+            if trigger_condition == "Between":
+                trigger_value = st.text_input("Value Range", value="20-30", help="e.g., 20-30")
+            else:
+                trigger_value = st.number_input("Threshold Value", value=100.0, step=1.0)
+        
+        # Oracle source
+        oracle_source = st.text_input(
+            "🌐 Oracle Address (optional)",
+            value="",
+            placeholder="0x... or oracle.ergo.io/weather",
+            help="Smart contract or API endpoint for oracle data"
+        )
+        
+        st.markdown("---")
+        
+        # Payout Ratio (only for variable) - NOW GOES LOWER THAN 1
         if insurance_type == "Variable":
             payout_ratio = st.slider(
                 "⚖️ Payout Ratio",
-                min_value=1.0,
+                min_value=0.1,
                 max_value=5.0,
                 value=2.0,
                 step=0.1,
-                help="Higher ratio = higher potential payout, but riskier"
+                help="Lower than 1.0 means conservative (e.g., 0.25 = 1:4 ratio). Higher means aggressive (e.g., 5.0 = 5:1 ratio)"
             )
             
-            # Risk level indicator
-            if payout_ratio < 2.0:
+            # Show ratio in both directions for clarity
+            if payout_ratio < 1.0:
+                ratio_display = f"1:{int(1/payout_ratio)}"
+                risk_level = "🟢 Very Conservative"
+                risk_color = "green"
+            elif payout_ratio < 2.0:
+                ratio_display = f"{payout_ratio:.1f}:1"
                 risk_level = "🟢 Low Risk"
                 risk_color = "green"
             elif payout_ratio < 3.5:
+                ratio_display = f"{payout_ratio:.1f}:1"
                 risk_level = "🟡 Medium Risk"
                 risk_color = "orange"
             else:
+                ratio_display = f"{payout_ratio:.1f}:1"
                 risk_level = "🔴 High Risk"
                 risk_color = "red"
             
             st.markdown(f"**Risk Level:** :{risk_color}[{risk_level}]")
-            st.caption(f"Payout multiplier: **{payout_ratio:.1f}:1**")
+            st.caption(f"Payout multiplier: **{ratio_display}**")
         else:
             payout_ratio = 1.0
         
@@ -230,14 +290,35 @@ if "🔒 Buy Insurance" in view:
         """)
         st.markdown('</div>', unsafe_allow_html=True)
         
+        # Oracle trigger info
+        st.markdown('<div class="oracle-box">', unsafe_allow_html=True)
+        st.markdown("**🔮 Oracle Trigger:**")
+        st.markdown(f"**Event:** {trigger_event}")
+        st.markdown(f"**Condition:** {trigger_condition} {trigger_value}")
+        if oracle_source:
+            st.markdown(f"**Source:** `{oracle_source}`")
+        else:
+            st.markdown("**Source:** Default Ergo Oracle Pool")
+        st.markdown('</div>', unsafe_allow_html=True)
+        
         # Additional details
         with st.expander("📋 View Insurance Details"):
             st.write(f"**Coverage Amount:** ${coverage_amount:,.2f}")
             st.write(f"**Insurance Type:** {insurance_type}")
             if insurance_type == "Variable":
-                st.write(f"**Payout Ratio:** {payout_ratio:.1f}:1")
+                if payout_ratio < 1.0:
+                    st.write(f"**Payout Ratio:** 1:{int(1/payout_ratio)}")
+                else:
+                    st.write(f"**Payout Ratio:** {payout_ratio:.1f}:1")
             st.write(f"**Duration:** {duration_days} days")
             st.write(f"**Expected Pool:** ${insurer_pool_total:,.2f}")
+            st.markdown("---")
+            st.write(f"**🔮 Trigger Event:** {trigger_event}")
+            st.write(f"**Condition:** {trigger_condition} {trigger_value}")
+            if oracle_source:
+                st.write(f"**Oracle Source:** {oracle_source}")
+            else:
+                st.write(f"**Oracle Source:** Default Ergo Oracle Pool")
 
 else:  # Insurer View
     st.header("📈 Provide Insurance Coverage")
@@ -269,12 +350,18 @@ else:  # Insurer View
         if insurance_type == "Variable":
             payout_ratio = st.slider(
                 "Payout Ratio",
-                min_value=1.0,
+                min_value=0.1,
                 max_value=5.0,
                 value=2.0,
                 step=0.1,
                 disabled=True
             )
+            
+            # Show readable ratio format
+            if payout_ratio < 1.0:
+                st.caption(f"Ratio: 1:{int(1/payout_ratio)}")
+            else:
+                st.caption(f"Ratio: {payout_ratio:.1f}:1")
         else:
             payout_ratio = 1.0
         
@@ -283,6 +370,39 @@ else:  # Insurer View
             min_value=1,
             max_value=365,
             value=30,
+            disabled=True
+        )
+        
+        # Show oracle trigger information
+        st.markdown("---")
+        st.markdown("**🔮 Oracle Trigger:**")
+        
+        trigger_event = st.selectbox(
+            "Trigger Event",
+            [
+                "Weather - Temperature",
+                "Weather - Rainfall", 
+                "Weather - Wind Speed",
+                "Price Movement - ERG/USD",
+                "Price Movement - BTC/USD",
+                "Price Movement - ETH/USD",
+                "Agricultural - Crop Yield",
+                "Flight Delay",
+                "Custom Oracle Data"
+            ],
+            index=3,
+            disabled=True
+        )
+        
+        trigger_condition = st.text_input(
+            "Trigger Condition",
+            value="Below 2.50",
+            disabled=True
+        )
+        
+        oracle_source = st.text_input(
+            "Oracle Source",
+            value="Default Ergo Oracle Pool",
             disabled=True
         )
         
@@ -427,18 +547,35 @@ st.markdown("---")
 with st.expander("ℹ️ How It Works"):
     st.markdown("""
     ### For Buyers (Insurees):
-    1. **Lock Funds:** Deposit USDC as your insurance premium
-    2. **Set Terms:** Choose insurance type and payout conditions
-    3. **Wait:** If your conditions trigger, you get the payout
-    4. **Outcome:** Get paid if claim is valid, otherwise insurers keep premium
+    1. **Lock Funds:** Deposit ERG/USDC as your insurance premium
+    2. **Set Terms:** Choose insurance type, payout ratio, and oracle trigger
+    3. **Configure Oracle:** Select event (weather, price, etc.) and conditions
+    4. **Wait for Oracle:** Smart contract monitors oracle data feed
+    5. **Outcome:** Get paid if oracle confirms trigger, otherwise insurers keep premium
     
     ### For Insurers:
-    1. **Provide Capital:** Add USDC to the insurance pool
-    2. **Earn Premiums:** Collect buyer's locked funds if no claim
-    3. **Pool Share:** Your earnings are proportional to your stake
-    4. **Risk:** If claim triggers, you pay out from your stake
+    1. **Provide Capital:** Add ERG/USDC to the insurance pool
+    2. **Accept Terms:** Review oracle trigger and payout conditions
+    3. **Earn Premiums:** Collect buyer's locked funds if oracle doesn't trigger
+    4. **Pool Share:** Your earnings are proportional to your stake
+    5. **Risk:** If oracle confirms trigger, you pay out from your stake
     
     ### Insurance Types:
-    - **Variable:** Payout amount varies based on the ratio you set (higher risk/reward)
-    - **Fixed:** Predetermined payout amount (standard insurance)
+    - **Variable:** Payout amount varies based on the ratio you set
+      - **Below 1.0** (e.g., 0.25 = 1:4): Very conservative, lower payouts
+      - **Above 1.0** (e.g., 3.0 = 3:1): Aggressive, higher payouts
+    - **Fixed:** Predetermined payout amount (standard 1:1 insurance)
+    
+    ### Oracle Triggers:
+    - **Weather Data:** Temperature, rainfall, wind speed from weather oracles
+    - **Price Movement:** Crypto/token prices from Ergo Oracle Pools
+    - **Agricultural:** Crop yields, harvest data
+    - **Custom:** Any data feed from verified Ergo oracle contracts
+    
+    ### How Oracles Work:
+    1. Oracle pools aggregate data from multiple sources
+    2. Smart contract checks oracle data at specified intervals
+    3. When condition is met, payout is automatically triggered
+    4. No human intervention needed - trustless execution
     """)
+
